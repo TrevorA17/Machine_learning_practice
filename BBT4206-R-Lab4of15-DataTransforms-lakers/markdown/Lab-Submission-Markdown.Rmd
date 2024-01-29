@@ -1,0 +1,351 @@
+---
+title: "Business Intelligence Lab Submission Markdown"
+author: "<Specify your group name here>"
+date: "<Specify the date when you submitted the lab>"
+output:
+  github_document: 
+    toc: yes
+    toc_depth: 4
+    fig_width: 6
+    fig_height: 4
+    df_print: default
+editor_options:
+  chunk_output_type: console
+---
+
+# Student Details
+
++---------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Student ID Numbers and Names of Group Members** 
+|                                                   |                                                                                                                                                                          |
+|                                                   | 1.  134780 - C - Trevor Okinda                                                                                                                                              |
+|                                                   |                                                                                                                                                                          |
+|                                                   | 2.  132840 - C - Sheila Wangui                                                                                                                                              |
+|                                                   |                                                                                                                                                                          |
+|                                                   | 3.  131749 - C - Teresia Nungari                                                                                                                                              |
+|                                                   |                                                                                                                                                                          |
+|                                                   | 4.  135203 - C - Tom Arnold                                                                                                                                              |
+|                                                   |                                                                                                                                                                          |
+|                                                   |                                                                                                                                              |
++---------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **GitHub Classroom Group Name**                   | Lakers                                                                                                       
++---------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Course Code**                                   | BBT4206                                                                                                                                                                  |
++---------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Course Name**                                   | Business Intelligence II                                                                                                                                                 |
++---------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Program**                                       | Bachelor of Business Information Technology                                                                                                                              |
++---------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Semester Duration**                             | 21^st^ August 2023 to 28^th^ November 2023                                                                                                                               |
++---------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+# Setup Chunk
+
+We start by installing all the required packages
+
+```{r Install Packages, echo=TRUE, message=FALSE, warning=FALSE}
+## mlbench ----
+if (require("mlbench")) {
+  require("mlbench")
+} else {
+  install.packages("mlbench", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+
+## readr ----
+if (require("readr")) {
+  require("readr")
+} else {
+  install.packages("readr", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+
+## caret ----
+if (require("caret")) {
+  require("caret")
+} else {
+  install.packages("caret", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+
+## e1071 ----
+if (require("e1071")) {
+  require("e1071")
+} else {
+  install.packages("e1071", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+
+## factoextra ----
+if (require("factoextra")) {
+  require("factoextra")
+} else {
+  install.packages("factoextra", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+
+## FactoMineR ----
+if (require("FactoMineR")) {
+  require("FactoMineR")
+} else {
+  install.packages("FactoMineR", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+```
+
+------------------------------------------------------------------------
+
+**Note:** the following "*KnitR*" options have been set as the defaults in this markdown:\
+`knitr::opts_chunk$set(echo = TRUE, warning = FALSE, eval = TRUE, collapse = FALSE, tidy.opts = list(width.cutoff = 80), tidy = TRUE)`.
+
+More KnitR options are documented here <https://bookdown.org/yihui/rmarkdown-cookbook/chunk-options.html> and here <https://yihui.org/knitr/options/>.
+
+```{r setup, echo=TRUE, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(
+	eval = TRUE,
+	echo = TRUE,
+	warning = FALSE,
+	collapse = FALSE,
+	tidy = TRUE
+)
+```
+
+------------------------------------------------------------------------
+
+**Note:** the following "*R Markdown*" options have been set as the defaults in this markdown:
+
+> output:\
+> \
+> github_document:\
+> toc: yes\
+> toc_depth: 4\
+> fig_width: 6\
+> fig_height: 4\
+> df_print: default\
+> \
+> editor_options:\
+> chunk_output_type: console
+
+# Load dataset
+
+Load the student performance dataset
+
+```{r Load dataset}
+library(readr)
+library(dplyr)
+student_performance_dataset <-
+  readr::read_csv(
+    "../data/StudentPerformanceDataset.csv", 
+    col_types =
+      readr::cols(
+        class_group =
+          readr::col_factor(levels = c("A", "B", "C")),
+        gender = readr::col_factor(levels = c("1", "0")),
+        YOB = readr::col_date(format = "%Y"),
+        regret_choosing_bi =
+          readr::col_factor(levels = c("1", "0")),
+        drop_bi_now =
+          readr::col_factor(levels = c("1", "0")),
+        motivator =
+          readr::col_factor(levels = c("1", "0")),
+        read_content_before_lecture =
+          readr::col_factor(levels =
+                              c("1", "2", "3", "4", "5")),
+        anticipate_test_questions =
+          readr::col_factor(levels =
+                              c("1", "2", "3", "4", "5")),
+        answer_rhetorical_questions =
+          readr::col_factor(levels =
+                              c("1", "2", "3", "4", "5")),
+        find_terms_I_do_not_know =
+          readr::col_factor(levels =
+                              c("1", "2", "3", "4", "5")),
+        copy_new_terms_in_reading_notebook =
+          readr::col_factor(levels =
+                              c("1", "2", "3", "4", "5")),
+        take_quizzes_and_use_results =
+          readr::col_factor(levels =
+                              c("1", "2", "3", "4", "5")),
+        reorganise_course_outline =
+          readr::col_factor(levels =
+                              c("1", "2", "3", "4", "5")),
+        write_down_important_points =
+          readr::col_factor(levels =
+                              c("1", "2", "3", "4", "5")),
+        space_out_revision =
+          readr::col_factor(levels =
+                              c("1", "2", "3", "4", "5")),
+        studying_in_study_group =
+          readr::col_factor(levels =
+                              c("1", "2", "3", "4", "5")),
+        schedule_appointments =
+          readr::col_factor(levels =
+                              c("1", "2", "3", "4", "5")),
+        goal_oriented =
+          readr::col_factor(levels =
+                              c("1", "0")),
+        spaced_repetition =
+          readr::col_factor(levels =
+                              c("1", "2", "3", "4")),
+        testing_and_active_recall =
+          readr::col_factor(levels =
+                              c("1", "2", "3", "4")),
+        interleaving =
+          readr::col_factor(levels =
+                              c("1", "2", "3", "4")),
+        categorizing =
+          readr::col_factor(levels =
+                              c("1", "2", "3", "4")),
+        retrospective_timetable =
+          readr::col_factor(levels =
+                              c("1", "2", "3", "4")),
+        cornell_notes =
+          readr::col_factor(levels =
+                              c("1", "2", "3", "4")),
+        sq3r = readr::col_factor(levels =
+                                   c("1", "2", "3", "4")),
+        commute = readr::col_factor(levels =
+                                      c("1", "2",
+                                        "3", "4")),
+        study_time = readr::col_factor(levels =
+                                         c("1", "2",
+                                           "3", "4")),
+        repeats_since_Y1 = readr::col_integer(),
+        paid_tuition = readr::col_factor(levels =
+                                           c("0", "1")),
+        free_tuition = readr::col_factor(levels =
+                                           c("0", "1")),
+        extra_curricular = readr::col_factor(levels =
+                                               c("0", "1")),
+        sports_extra_curricular =
+          readr::col_factor(levels = c("0", "1")),
+        exercise_per_week = readr::col_factor(levels =
+                                                c("0", "1",
+                                                  "2",
+                                                  "3")),
+        meditate = readr::col_factor(levels =
+                                       c("0", "1",
+                                         "2", "3")),
+        pray = readr::col_factor(levels =
+                                   c("0", "1",
+                                     "2", "3")),
+        internet = readr::col_factor(levels =
+                                       c("0", "1")),
+        laptop = readr::col_factor(levels = c("0", "1")),
+        family_relationships =
+          readr::col_factor(levels =
+                              c("1", "2", "3", "4", "5")),
+        friendships = readr::col_factor(levels =
+                                          c("1", "2", "3",
+                                            "4", "5")),
+        romantic_relationships =
+          readr::col_factor(levels =
+                              c("0", "1", "2", "3", "4")),
+        spiritual_wellnes =
+          readr::col_factor(levels = c("1", "2", "3",
+                                       "4", "5")),
+        financial_wellness =
+          readr::col_factor(levels = c("1", "2", "3",
+                                       "4", "5")),
+        health = readr::col_factor(levels = c("1", "2",
+                                              "3", "4",
+                                              "5")),
+        day_out = readr::col_factor(levels = c("0", "1",
+                                               "2", "3")),
+        night_out = readr::col_factor(levels = c("0",
+                                                 "1", "2",
+                                                 "3")),
+        alcohol_or_narcotics =
+          readr::col_factor(levels = c("0", "1", "2", "3")),
+        mentor = readr::col_factor(levels = c("0", "1")),
+        mentor_meetings = readr::col_factor(levels =
+                                              c("0", "1",
+                                                "2", "3")),
+        `Attendance Waiver Granted: 1 = Yes, 0 = No` =
+          readr::col_factor(levels = c("0", "1")),
+        GRADE = readr::col_factor(levels =
+                                    c("A", "B", "C", "D",
+                                      "E"))),
+    locale = readr::locale())
+```
+
+## Scale Data Transform
+
+
+```{r Scale Data Transform}
+# BEFORE
+summary(student_performance_dataset)
+
+model_of_the_transform <- preProcess(student_performance_dataset, method = c("scale"))
+print(model_of_the_transform)
+student_perfomance_dataset_scale_transform <- predict(model_of_the_transform,
+                                          student_performance_dataset)
+# AFTER
+summary(student_perfomance_dataset_scale_transform)
+
+```
+
+Next, Center Data Transform
+
+```{r Center Data Transform}
+# BEFORE
+summary(student_performance_dataset)
+
+model_of_the_transform <- preProcess(student_performance_dataset, method = c("center"))
+print(model_of_the_transform)
+student_performance_dataset_center_transform <- predict(model_of_the_transform, # nolint
+                                           student_performance_dataset)
+
+# AFTER
+summary(student_performance_dataset_center_transform)
+
+```
+
+# Standardize Data Transform
+
+
+```{r Standardize Data Transform}
+# BEFORE
+summary(student_performance_dataset)
+
+
+model_of_the_transform <- preProcess(student_performance_dataset,
+                                     method = c("scale", "center"))
+print(model_of_the_transform)
+student_performance_dataset_standardize_transform <- predict(model_of_the_transform, # nolint
+                                                student_performance_dataset)
+# AFTER
+summary(student_performance_dataset_standardize_transform)
+
+```
+
+## Normalize Data Transform
+
+```{r Normalize Data Transform}
+#### The Normalize Transform on the Student Performance Dataset ----
+summary(student_performance_dataset)
+model_of_the_transform <- preProcess(student_performance_dataset, method = c("range"))
+print(model_of_the_transform)
+student_performance_dataset_normalize_transform <- predict(model_of_the_transform, # nolint
+                                              student_performance_dataset)
+summary(student_performance_dataset_normalize_transform)
+
+```
+
+## Box-Cox Power Transform
+
+```{r Box-Cox Power Transform}
+summary(student_performance_dataset)
+
+
+model_of_the_transform <- preProcess(student_performance_dataset, method = c("BoxCox"))
+print(model_of_the_transform)
+student_performance_dataset_box_cox_transform <- predict(model_of_the_transform, # nolint
+                                                         student_performance_dataset)
+
+# AFTER
+summary(student_performance_dataset_box_cox_transform)
+
+```
+
+**etc.** as per the lab submission requirements. Be neat and communicate in a clear and logical manner.

@@ -1,0 +1,250 @@
+---
+title: "Business Intelligence Lab Submission Markdown"
+author: "<Specify your group name here>"
+date: "<Specify the date when you submitted the lab>"
+output:
+  github_document: 
+    toc: yes
+    toc_depth: 4
+    fig_width: 6
+    fig_height: 4
+    df_print: default
+editor_options:
+  chunk_output_type: console
+---
+
+# Student Details
+
++---------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Student ID Numbers and Names of Group Members** 
+|                                                   |                                                                                                                                                                          |
+|                                                   | 1.  134780 - C - Trevor Okinda                                                                                                                                              |
+|                                                   |                                                                                                                                                                          |
+|                                                   | 2.  132840 - C - Sheila Wangui                                                                                                                                              |
+|                                                   |                                                                                                                                                                          |
+|                                                   | 3.  131749 - C - Teresia Nungari                                                                                                                                              |
+|                                                   |                                                                                                                                                                          |
+|                                                   | 4.  135203 - C - Tom Arnold                                                                                                                                              |
+|                                                   |                                                                                                                                                                          |
+|                                                   |                                                                                                                                              |
++---------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **GitHub Classroom Group Name**                   | Lakers                                                                                                       
++---------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Course Code**                                   | BBT4206                                                                                                                                                                  |
++---------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Course Name**                                   | Business Intelligence II                                                                                                                                                 |
++---------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Program**                                       | Bachelor of Business Information Technology                                                                                                                              |
++---------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Semester Duration**                             | 21^st^ August 2023 to 28^th^ November 2023                                                                                                                               |
++---------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+# Setup Chunk
+
+We start by installing all the required packages
+
+```{r Install Packages, echo=TRUE, message=FALSE, warning=FALSE}
+## mlbench ----
+if (require("mlbench")) {
+  require("mlbench")
+} else {
+  install.packages("mlbench", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+
+## caret ----
+if (require("caret")) {
+  require("caret")
+} else {
+  install.packages("caret", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+
+## klaR ----
+if (require("klaR")) {
+  require("klaR")
+} else {
+  install.packages("klaR", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+
+## e1071 ----
+if (require("e1071")) {
+  require("e1071")
+} else {
+  install.packages("e1071", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+
+## readr ----
+if (require("readr")) {
+  require("readr")
+} else {
+  install.packages("readr", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+
+## LiblineaR ----
+if (require("LiblineaR")) {
+  require("LiblineaR")
+} else {
+  install.packages("LiblineaR", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+
+## naivebayes ----
+if (require("naivebayes")) {
+  require("naivebayes")
+} else {
+  install.packages("naivebayes", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+```
+
+------------------------------------------------------------------------
+
+**Note:** the following "*KnitR*" options have been set as the defaults in this markdown:\
+`knitr::opts_chunk$set(echo = TRUE, warning = FALSE, eval = TRUE, collapse = FALSE, tidy.opts = list(width.cutoff = 80), tidy = TRUE)`.
+
+More KnitR options are documented here <https://bookdown.org/yihui/rmarkdown-cookbook/chunk-options.html> and here <https://yihui.org/knitr/options/>.
+
+```{r setup, echo=TRUE, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(
+	eval = TRUE,
+	echo = TRUE,
+	warning = FALSE,
+	collapse = FALSE,
+	tidy = TRUE
+)
+```
+
+------------------------------------------------------------------------
+
+**Note:** the following "*R Markdown*" options have been set as the defaults in this markdown:
+
+> output:\
+> \
+> github_document:\
+> toc: yes\
+> toc_depth: 4\
+> fig_width: 6\
+> fig_height: 4\
+> df_print: default\
+> \
+> editor_options:\
+> chunk_output_type: console
+
+# Load dataset
+
+Load the PimaIndiansDiabetes dataset and check its structure
+
+```{r Load dataset}
+library(mlbench)
+data("PimaIndiansDiabetes")
+# Check the structure of the dataset
+str(PimaIndiansDiabetes)
+```
+
+## Split dataset
+
+
+```{r Split dataset}
+# Split the dataset into training and testing sets
+set.seed(123)  # Set a random seed for reproducibility
+
+
+# Assuming "diabetes" is the target variable
+inTrain <- createDataPartition(y = PimaIndiansDiabetes$diabetes, p = 0.6, list = FALSE)
+training_data <- PimaIndiansDiabetes[inTrain, ]
+testing_data <- PimaIndiansDiabetes[-inTrain, ]
+
+```
+
+Next, we create a Naive Bayes classifier using the Pima Indians Diabetes dataset
+
+```{r Naive Bayes classifier}
+# Create a Naive Bayes classifier using the Pima Indians Diabetes dataset
+pima_nb_model <- e1071::naiveBayes(diabetes ~ pregnant + glucose + pressure + triceps + insulin + mass + pedigree + age, data = PimaIndiansDiabetes)
+
+# Check the summary of the Naive Bayes model
+summary(pima_nb_model)
+
+# Assuming you have already trained the Naive Bayes model (pima_nb_model) and have a testing dataset (testing_data)
+predictions_nb_caret <- predict(pima_nb_model, newdata = testing_data[, c("pregnant", "glucose", "pressure", "triceps", "insulin", "mass", "pedigree", "age")])
+
+
+# Calculate the confusion matrix
+confusion_matrix <- confusionMatrix(predictions_nb_caret, testing_data$diabetes)
+print(confusion_matrix)
+
+# Create a plot based on the confusion matrix
+plot(confusion_matrix$table)
+
+```
+
+# Bootstrapping train control
+Training a linear regression model (for regression)
+
+
+```{r Bootstrapping train control}
+train_control <- trainControl(method = "boot", number = 500)
+
+pima_lm_model <- caret::train(diabetes ~
+                                              pregnant + glucose + pressure + triceps + insulin +
+                                              mass + pedigree + age,
+                                            data = training_data,
+                                            trControl = train_control,
+                                            na.action = na.omit, method = "glm", metric = "Accuracy")
+# Test the trained linear regression model using the testing dataset
+predictions_lm <- predict(pima_lm_model, newdata = testing_data[, c("pregnant", "glucose", "pressure", "triceps", "insulin", "mass", "pedigree", "age")])
+
+
+#View the predicted values for the observations
+print(predictions_lm)
+
+```
+
+## Binary Classification: Logistic Regression with 10-fold cross-validation
+
+```{r Normalize Data Transform}
+train_control <- trainControl(method = "cv", number = 10, classProbs = TRUE, summaryFunction = twoClassSummary)
+
+pima_lr_model <- caret::train(diabetes ~ .,
+                              data = training_data,
+                              trControl = train_control,
+                              na.action = na.omit,
+                              method = "glm", 
+                              family = "binomial", 
+                              metric = "ROC")
+
+# Test the trained logistic regression model using the testing dataset
+predictions_lr <- predict(pima_lr_model, newdata = testing_data[, c("pregnant", "glucose", "pressure", "triceps", "insulin", "mass", "pedigree", "age")])
+
+# Print the model and predicted values
+print(pima_lr_model)
+print(predictions_lr)
+
+```
+
+## LDA classifier based on a 5-fold cross-validation
+
+```{r Box-Cox Power Transform}
+train_control <- trainControl(method = "cv", number = 5)
+
+pima_lda_model <- caret::train(diabetes ~ ., data = training_data,
+                               trControl = train_control, na.action = na.omit,
+                               method = "lda", metric = "Accuracy")
+
+# Test the trained LDA model using the testing dataset
+predictions_lda <- predict(pima_lda_model, newdata = testing_data[, c("pregnant", "glucose", "pressure", "triceps", "insulin", "mass", "pedigree", "age")])
+
+# View the summary of the model
+print(pima_lda_model)
+
+# View the confusion matrix
+confusion_matrix <- confusionMatrix(predictions_lda, testing_data$diabetes)
+print(confusion_matrix)
+
+```
+
+**etc.** as per the lab submission requirements. Be neat and communicate in a clear and logical manner.
